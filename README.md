@@ -40,7 +40,7 @@ python BilibiliLiveBeta_V0.6.3.py 163637592,517327498,946974
 
 ## 可选择功能1：设置脚本自动关闭时间  
 配置代码：  
-	stopClockTime = "23-30" #设置今日"23：30"截止时刻  
+stopClockTime = "23-30" #设置今日"23：30"截止时刻  
 说明：过了该时刻如果还有直播则不会停止脚本  
 
 ## 可选择功能2：设置分段刷新频率  
@@ -48,13 +48,13 @@ python BilibiliLiveBeta_V0.6.3.py 163637592,517327498,946974
 该设置仅针对全局设置，不能针对某个用户个性化设置  
 刷新间隔为某一区间内的随机数，单位s  
 配置代码：
-	```
-	changeClockTime = "16-00" #设置刷新频率的分隔时刻，默认该时刻前为空闲时刻，刷新频率低
-	pcctNumber = 300    #设置空闲时间段刷新频率的加权值，单位s，可正可负
-	#空闲时间刷新随机区间为/[min+pcctNumber,max+pcctNumber /]
-	setRefreshLiveMinTime = 30  # 设置直播状态刷新随机间隔最小值，单位s
-	setRefreshLiveMaxTime = 50  # 设置直播状态刷新随机间隔最大值，单位s
-	```  
+```
+changeClockTime = "16-00" #设置刷新频率的分隔时刻，默认该时刻前为空闲时刻，刷新频率低
+pcctNumber = 300    #设置空闲时间段刷新频率的加权值，单位s，可正可负
+#空闲时间刷新随机区间为/[min+pcctNumber,max+pcctNumber /]
+setRefreshLiveMinTime = 30  # 设置直播状态刷新随机间隔最小值，单位s
+setRefreshLiveMaxTime = 50  # 设置直播状态刷新随机间隔最大值，单位s
+```
     
  ## 可选择功能3：设置下载直播流画质  
 ```qualityLive = 10000```  
