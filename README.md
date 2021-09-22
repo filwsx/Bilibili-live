@@ -15,15 +15,15 @@
 
 # 开箱即用：
 **仅针对windows平台**
-	安装python并配置环境变量    
-	python推荐版本3.9（因为开发用的这个版本，其他版本未经测试）
-	下载aria2c.exe，与py脚本放在同一目录下
-	打开cmd 或 powershell执行
+	安装python并配置环境变量  
+	python推荐版本3.9（因为开发用的这个版本，其他版本未经测试）  
+	下载aria2c.exe，与py脚本放在同一目录下  
+	打开cmd 或 powershell执行  
 	'''
 	cd [脚本所在目录]
 	python [脚本文件名] [up主id]
 	'''
-	例如
+	例如  
 	'''
 	cd D:\test
 	python BilibiliLiveBeta_V0.6.3.py 163637592,517327498,946974
