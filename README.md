@@ -28,6 +28,7 @@ python [脚本文件名] [up主id]
 cd D:\test
 python BilibiliLiveBeta_V0.6.3.py 163637592,517327498,946974
 ```
+多个用户ID使用英文逗号隔开  
 # 程序配置
 是否需要登录：不需要登陆  
 
