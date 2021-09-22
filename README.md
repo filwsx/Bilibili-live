@@ -17,7 +17,7 @@
 **仅针对windows平台**  
 1. 安装python并配置环境变量  
 	python推荐版本3.9（因为开发用的这个版本，其他版本未经测试）  
-2. 下载aria2c.exe，与py脚本放在同一目录下  
+2. 下载[aria2c.exe](https://github.com/aria2/aria2/releases)，与py脚本放在同一目录下  
 3. 打开cmd 或 powershell执行  
 ```
 cd [脚本所在目录]
