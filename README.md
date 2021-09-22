@@ -36,7 +36,10 @@ python BilibiliLiveBeta_V0.6.3.py 163637592,517327498,946974
 ## 必选：配置下载工具  
 可使用：aria2/系统默认浏览器/idm  
 默认使用与脚本同一目录下的aria2c.exe  
-配置代码：```aria2cDir = r"{}{}aria2c.exe".format(os.getcwd(),dirChar)```  
+配置代码：
+```
+aria2cDir = r"{}{}aria2c.exe".format(os.getcwd(),dirChar)
+```  
 
 ## 可选择功能1：设置脚本自动关闭时间  
 ```
@@ -51,8 +54,8 @@ stopClockTime = "23-30" #设置今日"23：30"截止时刻
 配置代码：
 ```
 changeClockTime = "16-00" #设置刷新频率的分隔时刻，默认该时刻前为空闲时刻，刷新频率低
-pcctNumber = 300    #设置空闲时间段刷新频率的加权值，单位s，可正可负
-#空闲时间刷新随机区间为/[min+pcctNumber,max+pcctNumber /]
+pcctNumber = 300	#设置空闲时间段刷新频率的加权值，单位s，可正可负
+			#空闲时间刷新随机区间为[min+pcctNumber,max+pcctNumber]
 setRefreshLiveMinTime = 30  # 设置直播状态刷新随机间隔最小值，单位s
 setRefreshLiveMaxTime = 50  # 设置直播状态刷新随机间隔最大值，单位s
 ```
@@ -66,7 +69,7 @@ qualityLive = 10000
     
  ## 可选择功能4：设置视频存储路径  
 ```
-globalDownloadDir = ''
+globalDownloadDir = r''
 ```  
 指定IDM下载直播流的存储路径  
 默认路径为脚本所在目录，并为不同用户创建不同文件夹存储相关内容  
