@@ -5,9 +5,9 @@
 测试平台：windows10/Ubuntu20.04    
 
 # 基本知识  
-## up主的ID：  
-	用户ID，纯数字。  
-	以https://space.bilibili.com/163637592为例，网址最后一串数字163637592为用户ID，请求参数中为mid。  
+## mid：  
+	即用户ID，纯数字。  
+	以https://space.bilibili.com/163637592为例，网址最后一串数字163637592为用户ID。
 ## room_id：  
 	即直播房间ID，纯数字。  
 	以https://live.bilibili.com/5867219为例，网址最后一串数字5867219为直播房间ID。  
