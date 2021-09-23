@@ -32,10 +32,8 @@ class UPUP(object):
         self.downloadDir  = os.getcwd() + os.sep + self.live['name'] + "_"+ str(self.mid)
         if not os.path.exists(self.downloadDir):
             os.mkdir(self.downloadDir)
-        threadLive = threading.Thread(target=self.liveDownload, daemon=True)
-        threadDanmu = threading.Thread(target=self.getDanmu, daemon=True)
-        threadLive.start()
-        threadDanmu.start()
+        threading.Thread(target=self.liveDownload, daemon=True).start()
+        threading.Thread(target=self.getDanmu, daemon=True).start()
     def getUserInfo(self):
         url = 'https://api.bilibili.com/x/space/acc/info?mid={}&jsonp=jsonp'.format(self.mid)
         r = downloadFile(url)
@@ -107,7 +105,7 @@ def live(upIDlist):
         time.sleep(5)
 if __name__ == '__main__':
     aria2cDir = r"{}{}aria2c.exe".format(os.getcwd(),os.sep)
-    uplist = [23191782,19147010,119801456,67738074,108142407,517327498]
+    uplist = [163637592,517327498,946974]
     threading.Thread(target=live, args=(uplist,), daemon=True).start()
     while True:
         time.sleep(100)
