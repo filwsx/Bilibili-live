@@ -21,7 +21,6 @@ def downloadFile(url):
     return response
 class UPUP(object):
     def __init__(self, upID):
-        self.liveQuality = 10000
         self.mid = upID
         self.crashFlag = 0  
         self.live = {'name': '【未初始化】', 'roomid': '【未初始化】', 'title': '【未初始化】', 'status': 0, 'streamUrl': '【未初始化】'}  
@@ -45,7 +44,7 @@ class UPUP(object):
             self.live['status'] = response['data']['live_room']['liveStatus']
         return self.live['status']
     def getStreamUrl(self):
-        url = 'https://api.live.bilibili.com/room/v1/Room/playUrl?cid={}&qn={}&platform=web'.format(self.live['roomid'], self.liveQuality)
+        url = 'https://api.live.bilibili.com/room/v1/Room/playUrl?cid={}&qn=10000&platform=web'.format(self.live['roomid'])
         r = downloadFile(url)
         if r[1]:
             response = json.loads(r[0])
@@ -60,10 +59,7 @@ class UPUP(object):
         while True:
             html = requests.post(url=DanmuURL,headers=DanmuHeaders,data=DanmuData).json()
             for content in html['data']['room']:
-                nickname = content['nickname']  
-                text = content['text']  
-                timeline = content['timeline']  
-                msg = timeline +' '+ nickname + ': ' + text + '\n'  
+                msg = content['timeline']  +' '+ content['nickname']  + ': ' + content['text']   + '\n'  
                 if msg not in lines_seen:
                     lines_seen.add(msg)
                     with open(DanmuFileName,"a",encoding = 'utf-8') as logFile:
