@@ -43,10 +43,14 @@ python BilibiliLive.py 163637592,517327498,946974
   
 ## 必选：配置下载工具  
 可使用：aria2/系统默认浏览器/idm  
-默认使用与脚本同一目录下的aria2c.exe  
+默认使用aria2下载
 配置代码：
 ```
-aria2cDir = r"{}{}aria2c.exe".format(os.getcwd(),dirChar)
+    isAria2 = 1 # 是否启用aria2下载直播流
+    aria2cDir = r"aria2c" # 指定aria2路径
+    isIDM = 0  # 是否启用IDM下载直播流
+    IDM = r'C:\Program Files (x86)\Internet Download Manager\IDMan.exe'  # 指定IDM软件路径
+    isBrowser = 0  # 是否启用系统默认浏览器打开直播流链接
 ```  
 
 ## 可选择功能1：设置脚本自动关闭时间  
