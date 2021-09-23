@@ -87,6 +87,7 @@ logFrequTime = 300
   https://blog.csdn.net/qq_43017750/article/details/107771744  
   
 # 计划任务
+- [ ] 增加浏览器与IDM下载支持
 - [ ] 增加开播时间信息
 - [ ] 获得的直播标题可能存在非法字符
 - [ ] 直播状态刷新调度器
