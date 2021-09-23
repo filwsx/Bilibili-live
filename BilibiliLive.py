@@ -168,6 +168,7 @@ def changeRequestFrequent(pcct,cct):
                 refreshLiveMaxTime = setRefreshLiveMaxTime
                 logWrite("改变刷新频率")
                 break;
+            time.sleep(1)
     else:
         logWrite("未设定刷新时刻")
 
