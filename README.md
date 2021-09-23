@@ -26,7 +26,7 @@ python库：psutil
     
     **ubuntu平台**  
     安装aria2 【已安装可跳过】  
-    ``` snap install aria2c```  
+    ```sudo snap install aria2c```  
 4. 打开cmd、powershell或终端执行  
 ```
 cd [脚本所在目录]
