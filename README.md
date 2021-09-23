@@ -1,7 +1,8 @@
 # Bilibili-live
 功能描述：用于挂机监听B站用户直播是否开播，开播则自动下载直播流和直播弹幕    
 版本描述：精简版仅显示开播信息，删去了正常版本的各种显示信息和与核心功能无关的代码    
-开发平台：windows10 + python3.9    
+开发平台：windows10 + python3.9   
+python库：psutil
 测试平台：windows10/Ubuntu20.04    
 
 # 基本知识  
@@ -13,15 +14,23 @@
 	以https://live.bilibili.com/5867219为例，网址最后一串数字5867219为直播房间ID。  
 请求数据格式均为json。
 
-# 开箱即用：
-**仅针对windows平台**  
-1. 安装python并配置环境变量  
-	python推荐版本3.9（因为开发用的这个版本，其他版本未经测试）  
-2. 下载[aria2c.exe](https://github.com/aria2/aria2/releases)，与py脚本放在同一目录下  
-3. 打开cmd 或 powershell执行  
+# 开箱即用
+1. 安装python并配置环境变量【已安装可跳过】  
+	python推荐版本3.9（因为开发用的这个版本，其他版本未经测试）
+2. 安装库  
+   ``` pip install psutil```
+3.
+    **windows平台**  
+    下载[aria2c.exe](https://github.com/aria2/aria2/releases)，与py脚本放在同一目录下  
+    或在代码中手动设置aria2c.exe绝对路径
+    
+    **ubuntu平台**  
+    安装aria2 【已安装可跳过】  
+    ``` snap install aria2c```  
+4. 打开cmd、powershell或终端执行  
 ```
 cd [脚本所在目录]
-python [脚本文件名] [up主id]
+python3 [脚本文件名] [up主id]
 #例如  
 cd D:\test
 python BilibiliLive.py 163637592,517327498,946974
