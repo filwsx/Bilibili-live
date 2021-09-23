@@ -244,7 +244,7 @@ if __name__ == '__main__':
     if len(sys.argv)>1:
         tempList = sys.argv[1].split(",")
     else:
-        tempList = []   #默认监听直播的ID
+        tempList = [163637592,517327498,946974]   #默认监听直播的ID
     for i in tempList :
         uplist.append(int(i))
     
