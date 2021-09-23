@@ -7,10 +7,10 @@
 # 基本知识  
 ## up主的ID：  
 	用户ID，纯数字。  
-	以https://space.bilibili.com/163637592为例，网址最后一串数字为用户ID，请求参数中为mid。  
+	以https://space.bilibili.com/163637592为例，网址最后一串数字163637592为用户ID，请求参数中为mid。  
 ## room_id：  
 	即直播房间ID，纯数字。  
-	以https://live.bilibili.com/5867219为例，网址最后一串数字为直播房间ID。  
+	以https://live.bilibili.com/5867219为例，网址最后一串数字5867219为直播房间ID。  
 请求数据格式均为json。
 
 # 开箱即用：
