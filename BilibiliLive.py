@@ -43,7 +43,7 @@ def logWrite(logMessage):
     content = "\n日志时间：{}\n程序uuid：{}\n日志内容：{}\n".format(nowTime, logUUID, logMessage)
     with open(logFileName,"a",encoding = 'utf-8') as logFile:
         logFile.writelines(content)
-
+    
 #发出网络请求
 def downloadFile(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36 QIHU 360SE'}
@@ -151,37 +151,74 @@ class UPUP(object):
                         call([IDM, '/d', streamUrl, '/p', self.downloadDir, '/f', liveFileName, '/n'])
                     if isAria2:
                         call([aria2cDir, streamUrl, '-d', self.downloadDir, '-o', liveFileName])
-                        waitingSeconds()    #防止aria2下载出错导致频繁请求
-                        continue    #如果阻塞结束则立即检查是否还在直播
-                    #没有开启aria2下载就手动造成一个堵塞
-                    else:
-                        while self.getUserInfo():
+                        waitingSeconds(2)    #防止aria2下载出错导致频繁请求
+                        continue
+                    else:#没有开启aria2下载就手动造成一个堵塞
+                        while self.getUserInfo():#只要在直播就一直调用call下载
                             time.sleep(refreshLiveMaxTime)
                 time.sleep(DelayTime)
         except Exception as ex:
             self.crashFlag = 1
             logWrite(ex)
 
-#该函数实现了不同时段直播状态刷新频率不同
-#cct为changeClockTime，意味过了这个时刻用设定频率刷新
-#pcct为perCCT，cct之前刷新频率：baseFrequency[min，max]+pcct，单位s
-def changeRequestFrequent(pcct,cct):
+#该函数实现了不同时段直播状态刷新频率不同，监视是否该结束脚本
+def taskListening():
     global refreshLiveMinTime
     global refreshLiveMaxTime
-    refreshLiveMinTime = setRefreshLiveMinTime + pcct
-    refreshLiveMaxTime = setRefreshLiveMaxTime + pcct
-    if len(cct):
-        changeTime = datetime.datetime.strptime(nowDate + cct,"%Y-%m-%d_%H-%M")
-        while runFlag:
-            currentTime = datetime.datetime.now()
-            if currentTime > changeTime:
+    global runFlag
+    global stopTime
+    
+    stopTime = 0    #是否设置截止时间
+    changeFlage = 0 #是否设置分段刷新
+    
+    upTime = datetime.datetime.now()    #初始化upTime为当前事情，使其满足upTime第一次更新正确值
+    downTime = datetime.datetime.now()
+    nowDate = upTime.strftime("%Y-%m-%d_")
+    
+    #设置不为空时，代表开启了定时关机
+    if stopClockTime:
+        stopTime = datetime.datetime.strptime(nowDate + stopClockTime,"%Y-%m-%d_%H-%M")
+    #判断是否开启分段刷新
+    if downClockTime and upClockTime:
+        changeFlage = 1
+    
+    while runFlag:
+        
+        #分段和结束两个功能都未开启，此线程没必要继续运行了
+        if not changeFlage and not stopTime:
+            logWrite("分段与停滞两功能均未开启")
+            break
+        
+        currentTime = datetime.datetime.now()
+        
+        #此判断用于解决7*24运行脚本带来的日期变更问题
+        #之所以以upTime为变更临界点是因为upTime可能本身就是次日时间
+        #以0点为临界点会造成0点-upTime这段时间失效
+        if currentTime > upTime and changeFlage:
+            nowDate = datetime.datetime.now().strftime("%Y-%m-%d_")
+            downTime = datetime.datetime.strptime(nowDate + downClockTime,"%Y-%m-%d_%H-%M")
+            upTime = datetime.datetime.strptime(nowDate + upClockTime,"%Y-%m-%d_%H-%M")
+            #upTime为次日
+            if upTime < downTime:
+                upTime = upTime + datetime.timedelta(days=1)
+            logWrite("分段时间已变更为{}到{}".format(downTime,upTime))
+        
+        #开启了定时关闭脚本
+        if stopTime:
+            #所有用户都没在直播（也就代表没有下载进程）且过了截止时刻
+            if not len(liveOn) and currentTime > stopTime:
+                runFlag = 0
+        
+        #开启分段刷新
+        if changeFlage:
+            if currentTime > downTime and currentTime < upTime:
                 refreshLiveMinTime = setRefreshLiveMinTime
                 refreshLiveMaxTime = setRefreshLiveMaxTime
-                logWrite("改变刷新频率")
-                break;
+            elif addNumber:
+                refreshLiveMinTime = setRefreshLiveMinTime + addNumber
+                refreshLiveMaxTime = setRefreshLiveMaxTime + addNumber
+        
         time.sleep(5)
-    else:
-        logWrite("未设定刷新时刻")
 
 
 #线程：定时写入日志信息（主要是直播信息）
@@ -190,20 +227,24 @@ def runLog(logTime):
         logWrite(allMessage)
         time.sleep(logTime)
 
-def waitingSeconds():
-    print("请等待5s")
-    time.sleep(5)
+
+def waitingSeconds(sleepNumber):
+    print("请等待{}s".format(sleepNumber))
+    time.sleep(sleepNumber)
 
 #线程：为每个要监听的up创建一个对象，对象内有监听和下载线程
 def live(upIDlist):
     upObjectList = []
     global allMessage
     global runFlag
+    global liveOn
+
     #开启各个up线程
     for i in upIDlist:
         liveVideo = UPUP(upID=i,rt = 0)
         upObjectList.append(liveVideo)
-        waitingSeconds()
+        waitingSeconds(5)
+    
     #不断刷新屏幕信息
     while runFlag:
         liveOn = []  # 正在开播
@@ -223,7 +264,7 @@ def live(upIDlist):
                 liveVideo = UPUP(upID=i.mid,rt = cfrt)
                 upObjectList.remove(i)
                 upObjectList.append(liveVideo)
-                waitingSeconds()
+                waitingSeconds(5)
         liveStatusMessage = "\n开播状态：\n\t正在直播{}\n\t等待开播{}\n\t刷新频率:{}到{}秒\n\t程序结束:{}".format(liveOn, liveWaiting, refreshLiveMinTime, refreshLiveMaxTime, stopTime)
         allMessage = liveStatusMessage + liveMessage
         
@@ -232,20 +273,16 @@ def live(upIDlist):
         else:
             os.system('clear')
         print(allMessage)
-        nowTime = datetime.datetime.now()
-        #开启了定时关闭脚本
-        if stopTime:
-            #所有用户都没在直播（也就代表没有下载进程）且过了截止时刻
-            if not len(liveOn) and nowTime > stopTime:
-                runFlag = 0
+        
         time.sleep(5)
 
 if __name__ == '__main__':
     stopClockTime = "" #设置今日"23-30"截止时刻
-    changeClockTime = "16-00" #设置刷新频率的分隔时刻，该时刻前为空闲时刻，刷新频率低
-    pcctNumber = 300    #设置空闲时间段刷新频率的加权值，值可正可负，不建议为负
-    setRefreshLiveMinTime = 30  # 设置直播状态刷新随机间隔最小值，单位s
-    setRefreshLiveMaxTime = 50  # 设置直播状态刷新随机间隔最大值，单位s
+    downClockTime = "16-00" #在每天downClockTime到upClockTime区间内高频率刷新直播状态
+    upClockTime = "23-00"   #upClockTime小于downClockTime则默认为次日
+    addNumber = 300        #设置空闲时间段刷新频率的加权值，值可正可负，不建议为负
+    setRefreshLiveMinTime = 20  # 设置直播状态刷新随机间隔最小值，单位s
+    setRefreshLiveMaxTime = 60  # 设置直播状态刷新随机间隔最大值，单位s
     requestsMinTime = 200  # 设置向B站请求时随机延时最小值，单位ms
     requestsMaxTime = 500  # 设置向B站请求时随机延时最大值，单位ms
     logFrequTime = 300   #日志写入频率，单位s
@@ -262,8 +299,7 @@ if __name__ == '__main__':
     isWindows = 0
     logUUID = uuid.uuid1()
     rootDir = os.getcwd() + os.sep
-    version = "BilibiliLiveBeta_V0.6.5"
-    nowDate = datetime.datetime.now().strftime("%Y-%m-%d_")
+    version = "BilibiliLiveBeta_V0.6.7"
     allMessage = "程序初始化完成\n程序版本：{}".format(version)
     
     if platform.system() == "Windows":
@@ -276,19 +312,13 @@ if __name__ == '__main__':
     if len(sys.argv)>1:
         tempList = sys.argv[1].split(",")
     else:
-        tempList = [163637592,517327498,946974]
+        tempList = [398058064,163637592]    #
     for i in tempList :
         uplist.append(int(i))
-    
-    #设置不为空时，代表开启了定时关机
-    if stopClockTime:
-        stopTime = datetime.datetime.strptime(nowDate + stopClockTime,"%Y-%m-%d_%H-%M")
-    else:
-        stopTime = 0
-    
+
     threadLog = threading.Thread(target=runLog, args=(logFrequTime,), daemon=True)
     threadLive = threading.Thread(target=live, args=(uplist,), daemon=True)
-    threadChangeFre = threading.Thread(target=changeRequestFrequent, args=(pcctNumber,changeClockTime,), daemon=True)
+    threadChangeFre = threading.Thread(target=taskListening, daemon=True)
     threadList = [threadChangeFre,threadLog,threadLive]
     for i in threadList:
         i.start()
@@ -297,4 +327,3 @@ if __name__ == '__main__':
         time.sleep(100)
     allMessage = "程序即将结束\n程序版本：{}".format(version)
     logWrite(allMessage)
-    
