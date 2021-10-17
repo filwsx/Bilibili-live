@@ -22,7 +22,6 @@ def downloadFile(url):
 class UPUP(object):
     def __init__(self, upID):
         self.mid = upID
-        self.crashFlag = 0  
         self.live = {'name': '【未初始化】', 'roomid': '【未初始化】', 'title': '【未初始化】', 'status': 0, 'streamUrl': '【未初始化】'}  
         self.downloadDir = ""
         self.refreshParam()
@@ -56,17 +55,20 @@ class UPUP(object):
         DanmuData = {'roomid':self.live['roomid'],'csrf_token':'','csrf':'','visit_id':'',}
         DanmuFileName = self.downloadDir + os.sep + datetime.datetime.now().strftime("{}_%Y-%m-%d.txt".format(self.live['name']))
         lines_seen = set()  
-        while True:
-            html = requests.post(url=DanmuURL,headers=DanmuHeaders,data=DanmuData).json()
-            for content in html['data']['room']:
-                msg = content['timeline']  +' '+ content['nickname']  + ': ' + content['text']   + '\n'  
-                if msg not in lines_seen:
-                    lines_seen.add(msg)
-                    with open(DanmuFileName,"a",encoding = 'utf-8') as logFile:
-                        logFile.writelines(msg)
-            if len(lines_seen)>1000:
-                lines_seen.clear()
-            time.sleep(2)
+        try:
+            while True:
+                html = requests.post(url=DanmuURL,headers=DanmuHeaders,data=DanmuData).json()
+                for content in html['data']['room']:
+                    msg = content['timeline']  +' '+ content['nickname']  + ': ' + content['text']   + '\n'  
+                    if msg not in lines_seen:
+                        lines_seen.add(msg)
+                        with open(DanmuFileName,"a",encoding = 'utf-8') as logFile:
+                            logFile.writelines(msg)
+                if len(lines_seen)>1000:
+                    lines_seen.clear()
+                time.sleep(2)
+        except:
+            self.getDanmu()
     def liveDownload(self):
         try :
             while True:
@@ -75,8 +77,8 @@ class UPUP(object):
                     call([aria2cDir, self.getStreamUrl(), '-d', self.downloadDir, '-o', liveFileName])
                     continue
                 delayRandom(30, 50, 1)
-        except Exception as ex:
-            self.crashFlag = 1
+        except:
+            self.liveDownload()
 def live(upIDlist):
     upObjectList = []
     for i in upIDlist:
@@ -91,10 +93,6 @@ def live(upIDlist):
                 liveOn.append(upName)
             else:
                 liveWaiting.append(upName)
-            if i.crashFlag:
-                liveVideo = UPUP(upID=i.mid)
-                upObjectList.remove(i)
-                upObjectList.append(liveVideo)
         liveStatusMessage = "\n正在直播{}\n等待开播{}".format(liveOn, liveWaiting)
         os.system("cls")
         print(liveStatusMessage)
