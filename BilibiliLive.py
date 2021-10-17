@@ -12,6 +12,10 @@ import platform
 import psutil
 import webbrowser
 
+def waitingSeconds(sleepNumber):
+    print("请等待{}s".format(sleepNumber))
+    time.sleep(sleepNumber)
+
 #power为0.001时为毫秒级延迟
 def delayRandom(downTime, upTime, power):
     DelayTime = random.randint(downTime, upTime)
@@ -64,7 +68,6 @@ class UPUP(object):
         self.liveQuality = qualityLive
         self.mid = upID
         self.refreshTimes = rt
-        self.crashFlag = 0  #当该值置为1，代表liveDownload线程结束了
         self.live = {'name': '【未初始化】', 'roomid': '【未初始化】', 'title': '【未初始化】', 'status': 0, 'streamUrl': '【未初始化】'}  # status为直播状态，1为正在直播；streamUrl为直播流直链
         self.liveMessage = ""
         self.downloadDir = ""
@@ -113,21 +116,25 @@ class UPUP(object):
         DanmuHeaders = {'Host':'api.live.bilibili.com','User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0',}
         DanmuFileName = self.downloadDir + os.sep + datetime.datetime.now().strftime("{}_%Y-%m-%d.txt".format(self.live['name']))
         lines_seen = set()  #存储已写入弹幕信息用于去重
-        while runFlag:
-            html = requests.post(url=DanmuURL,headers=DanmuHeaders,data=DanmuData).json()
-            # 解析弹幕列表
-            for content in html['data']['room']:
-                msg = content['timeline'] +' '+ content['nickname'] + ': ' + content['text'] + '\n'  # 记录发言
-                if msg not in lines_seen:
-                    lines_seen.add(msg)
-                    with open(DanmuFileName,"a",encoding = 'utf-8') as logFile:
-                        logFile.writelines(msg)
-            if len(lines_seen)>1000:
-                lines_seen.clear()
-            if self.live['status']:
-                time.sleep(1)
-            else:
-                time.sleep(logFrequTime)
+        try :
+            while runFlag:
+                html = requests.post(url=DanmuURL,headers=DanmuHeaders,data=DanmuData).json()
+                # 解析弹幕列表
+                for content in html['data']['room']:
+                    msg = content['timeline'] +' '+ content['nickname'] + ': ' + content['text'] + '\n'  # 记录发言
+                    if msg not in lines_seen:
+                        lines_seen.add(msg)
+                        with open(DanmuFileName,"a",encoding = 'utf-8') as logFile:
+                            logFile.writelines(msg)
+                if len(lines_seen)>1000:
+                    lines_seen.clear()
+                if self.live['status']:
+                    time.sleep(3)
+                else:
+                    time.sleep(logFrequTime)
+        except Exception as ex:
+            logWrite(ex)
+            self.getDanmu()
 
     #线程：监听当前对象直播
     def liveDownload(self):
@@ -151,15 +158,16 @@ class UPUP(object):
                         call([IDM, '/d', streamUrl, '/p', self.downloadDir, '/f', liveFileName, '/n'])
                     if isAria2:
                         call([aria2cDir, streamUrl, '-d', self.downloadDir, '-o', liveFileName])
-                        waitingSeconds(2)    #防止aria2下载出错导致频繁请求
+                        waitingSeconds(5)    #防止aria2下载出错导致频繁请求
                         continue
                     else:#没有开启aria2下载就手动造成一个堵塞
                         while self.getUserInfo():#只要在直播就一直调用call下载
                             time.sleep(refreshLiveMaxTime)
                 time.sleep(DelayTime)
         except Exception as ex:
-            self.crashFlag = 1
             logWrite(ex)
+            waitingSeconds(5)
+            self.liveDownload()
 
 #该函数实现了不同时段直播状态刷新频率不同，监视是否该结束脚本
 def taskListening():
@@ -170,10 +178,11 @@ def taskListening():
     
     stopTime = 0    #是否设置截止时间
     changeFlage = 0 #是否设置分段刷新
-    
-    upTime = datetime.datetime.now()    #初始化upTime为当前事情，使其满足upTime第一次更新正确值
+
+    #初始化upTime为当前时间，使其满足currentTime > upTime来初始化正确值
+    upTime = datetime.datetime.now()
     downTime = datetime.datetime.now()
-    nowDate = upTime.strftime("%Y-%m-%d_")
+    nowDate = datetime.datetime.now().strftime("%Y-%m-%d_")
     
     #设置不为空时，代表开启了定时关机
     if stopClockTime:
@@ -183,25 +192,12 @@ def taskListening():
         changeFlage = 1
     
     while runFlag:
-        
         #分段和结束两个功能都未开启，此线程没必要继续运行了
         if not changeFlage and not stopTime:
             logWrite("分段与停滞两功能均未开启")
             break
         
         currentTime = datetime.datetime.now()
-        
-        #此判断用于解决7*24运行脚本带来的日期变更问题
-        #之所以以upTime为变更临界点是因为upTime可能本身就是次日时间
-        #以0点为临界点会造成0点-upTime这段时间失效
-        if currentTime > upTime and changeFlage:
-            nowDate = datetime.datetime.now().strftime("%Y-%m-%d_")
-            downTime = datetime.datetime.strptime(nowDate + downClockTime,"%Y-%m-%d_%H-%M")
-            upTime = datetime.datetime.strptime(nowDate + upClockTime,"%Y-%m-%d_%H-%M")
-            #upTime为次日
-            if upTime < downTime:
-                upTime = upTime + datetime.timedelta(days=1)
-            logWrite("分段时间已变更为{}到{}".format(downTime,upTime))
         
         #开启了定时关闭脚本
         if stopTime:
@@ -211,6 +207,17 @@ def taskListening():
         
         #开启分段刷新
         if changeFlage:
+            #此判断用于解决7*24运行脚本带来的日期变更问题
+            #之所以以upTime为变更临界点是因为upTime可能本身就是次日时间
+            #以0点为临界点会造成0点-upTime这段时间失效
+            if currentTime > upTime:
+                nowDate = datetime.datetime.now().strftime("%Y-%m-%d_")
+                downTime = datetime.datetime.strptime(nowDate + downClockTime,"%Y-%m-%d_%H-%M")
+                upTime = datetime.datetime.strptime(nowDate + upClockTime,"%Y-%m-%d_%H-%M")
+                #upTime为次日
+                if upTime < downTime:
+                    upTime = upTime + datetime.timedelta(days=1)
+            
             if currentTime > downTime and currentTime < upTime:
                 refreshLiveMinTime = setRefreshLiveMinTime
                 refreshLiveMaxTime = setRefreshLiveMaxTime
@@ -218,22 +225,17 @@ def taskListening():
                 refreshLiveMinTime = setRefreshLiveMinTime + addNumber
                 refreshLiveMaxTime = setRefreshLiveMaxTime + addNumber
         
-        time.sleep(5)
+        time.sleep(10)
 
 
 #线程：定时写入日志信息（主要是直播信息）
-def runLog(logTime):
+def LogListening(logTime):
     while runFlag:
         logWrite(allMessage)
         time.sleep(logTime)
 
-
-def waitingSeconds(sleepNumber):
-    print("请等待{}s".format(sleepNumber))
-    time.sleep(sleepNumber)
-
 #线程：为每个要监听的up创建一个对象，对象内有监听和下载线程
-def live(upIDlist):
+def liveListening(upIDlist):
     upObjectList = []
     global allMessage
     global runFlag
@@ -257,32 +259,24 @@ def live(upIDlist):
                 liveOn.append(upName)
             else:
                 liveWaiting.append(upName)
-            
-            #对已结束线程进行重新初始化
-            if i.crashFlag:
-                cfrt = i.refreshTimes
-                liveVideo = UPUP(upID=i.mid,rt = cfrt)
-                upObjectList.remove(i)
-                upObjectList.append(liveVideo)
-                waitingSeconds(5)
-        liveStatusMessage = "\n开播状态：\n\t正在直播{}\n\t等待开播{}\n\t刷新频率:{}到{}秒\n\t程序结束:{}".format(liveOn, liveWaiting, refreshLiveMinTime, refreshLiveMaxTime, stopTime)
-        allMessage = liveStatusMessage + liveMessage
         
+        liveStatusMessage = "\n开播状态：\n\t正在直播{}\n\t等待开播{}\n\t刷新间隔:{}到{}秒\n\t程序结束:{}".format(liveOn, liveWaiting, refreshLiveMinTime, refreshLiveMaxTime, stopTime)
+        allMessage = liveStatusMessage + liveMessage
         if isWindows:
             os.system('cls')
         else:
             os.system('clear')
         print(allMessage)
         
-        time.sleep(5)
+        time.sleep(10)
 
 if __name__ == '__main__':
     stopClockTime = "" #设置今日"23-30"截止时刻
-    downClockTime = "16-00" #在每天downClockTime到upClockTime区间内高频率刷新直播状态
-    upClockTime = "23-00"   #upClockTime小于downClockTime则默认为次日
-    addNumber = 300        #设置空闲时间段刷新频率的加权值，值可正可负，不建议为负
+    downClockTime = "18-30" #在每天downClockTime到upClockTime区间内高频率刷新直播状态
+    upClockTime = "22-00"   #upClockTime小于downClockTime则默认为次日
+    addNumber = 120        #设置空闲时间段刷新频率的加权值，值可正可负，不建议为负
     setRefreshLiveMinTime = 20  # 设置直播状态刷新随机间隔最小值，单位s
-    setRefreshLiveMaxTime = 60  # 设置直播状态刷新随机间隔最大值，单位s
+    setRefreshLiveMaxTime = 30  # 设置直播状态刷新随机间隔最大值，单位s
     requestsMinTime = 200  # 设置向B站请求时随机延时最小值，单位ms
     requestsMaxTime = 500  # 设置向B站请求时随机延时最大值，单位ms
     logFrequTime = 300   #日志写入频率，单位s
@@ -299,12 +293,13 @@ if __name__ == '__main__':
     isWindows = 0
     logUUID = uuid.uuid1()
     rootDir = os.getcwd() + os.sep
-    version = "BilibiliLiveBeta_V0.6.7"
+    version = "BilibiliLiveBeta_V0.6.9"
     allMessage = "程序初始化完成\n程序版本：{}".format(version)
     
     if platform.system() == "Windows":
         isWindows = 1
         aria2cDir = r"{}aria2c.exe".format(rootDir)
+        #IDMan.exe未运行则启动IDMan
         if not judgeprocess("IDMan.exe") and isIDM:
             threading.Thread(target=IDManStart, args=(IDM,), daemon=True).start()
     
@@ -312,12 +307,12 @@ if __name__ == '__main__':
     if len(sys.argv)>1:
         tempList = sys.argv[1].split(",")
     else:
-        tempList = [398058064,163637592]    #
+        tempList = [398058064,163637592]
     for i in tempList :
         uplist.append(int(i))
 
-    threadLog = threading.Thread(target=runLog, args=(logFrequTime,), daemon=True)
-    threadLive = threading.Thread(target=live, args=(uplist,), daemon=True)
+    threadLog = threading.Thread(target=LogListening, args=(logFrequTime,), daemon=True)
+    threadLive = threading.Thread(target=liveListening, args=(uplist,), daemon=True)
     threadChangeFre = threading.Thread(target=taskListening, daemon=True)
     threadList = [threadChangeFre,threadLog,threadLive]
     for i in threadList:
