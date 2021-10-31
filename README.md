@@ -22,7 +22,7 @@ python库：psutil
 	python推荐版本3.9（因为开发用的这个版本，其他版本未经测试）
 2. 安装库  
    ``` pip install psutil```
-3. 下载工具配置
+3. 下载工具配置  
     **windows平台**  
     下载[aria2c.exe](https://github.com/aria2/aria2/releases)，与py脚本放在同一目录下  
     或在代码中手动设置aria2c.exe绝对路径
@@ -32,7 +32,7 @@ python库：psutil
     ```sudo snap install aria2c```  
 4. json文件说明  
 isopen用于控制是否爬取该用户，note为注释，down2up为快速刷新直播状态的时段，  
-min2max为快速刷新时的随机时间取值范围，addTime+min到addTime+max为低频刷新时的取值
+min2max为快速刷新时的随机时间取值范围，addTime+min到addTime+max为低频刷新时的取值  
 qualityLive为直播画质:20000为4K,10000为原画,401为杜比蓝光,400为蓝光,250为超清,150为高清,80为流畅   
 ```
 {
@@ -52,12 +52,10 @@ cd D:\test
 python BilibiliLive.py .\user.json
 ```
 
-# 程序配置
-打开代码，跳转到```__name__ == '__main__'```之后  
-## 必选：配置下载工具  
+# 下载工具配置  
 可使用：aria2/系统默认浏览器/idm  
-默认使用aria2下载
-配置代码：
+默认使用aria2下载  
+配置代码：  
 ```
     isAria2 = 1 # 是否启用aria2下载直播流
     aria2cDir = r"aria2c" # 指定aria2路径
