@@ -33,10 +33,17 @@ python库：psutil
 4. 打开cmd、powershell或终端执行  
 ```
 cd [脚本所在目录]
-python3 [脚本文件名] [up主id]
+python3 [脚本文件名] [用户配置文件，utf-8编码]
 #例如  
 cd D:\test
-python BilibiliLive.py 163637592,517327498,946974
+python BilibiliLive.py .\user.json
+{
+    "user":
+    [
+        {"isOpen":1,"note":"罗翔说刑法","mid":517327498,"down2up":"18:30-22:00","addTime":120,"min2max":"20-30","qualityLive":10000},
+        {"isOpen":0,"note":"我真的不懂分析","mid":85657899,"down2up":"18:30-22:00","addTime":120,"min2max":"20-30","qualityLive":10000}
+    ]
+}
 ```
 多个用户ID使用英文逗号隔开  
 # 程序配置
