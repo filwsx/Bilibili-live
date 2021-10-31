@@ -37,6 +37,12 @@ python3 [脚本文件名] [用户配置文件，utf-8编码]
 #例如  
 cd D:\test
 python BilibiliLive.py .\user.json
+
+```
+#json文件说明  
+isopen用于控制是否爬取该用户，note为注释，down2up为快速刷新直播状态的时段，  
+min2max为快速刷新时的随机时间取值范围，addTime+min到addTime+max为低频刷新时的取值，qualityLive为画质（10000为原画）  
+```
 {
     "user":
     [
