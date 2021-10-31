@@ -90,6 +90,7 @@ class UPUP(object):
         makeDir(self.downloadDir)
         threading.Thread(target=self.taskListening, daemon=True).start()
         threading.Thread(target=self.liveDownload, daemon=True).start()
+        threading.Thread(target=self.getDanmu, daemon=True).start()
         logMessage = '\n【{}初始化完成】'.format(mid)
         logWrite(logMessage)
     # 根据ID获取up基本信息，也是刷新直播状态
@@ -139,20 +140,19 @@ class UPUP(object):
         lines_seen = set()  #存储已写入弹幕信息用于去重
         try :
             while runFlag:
-                html = requests.post(url=DanmuURL,headers=DanmuHeaders,data=DanmuData).json()
-                # 解析弹幕列表
-                for content in html['data']['room']:
-                    msg = content['timeline'] +' '+ content['nickname'] + ': ' + content['text'] + '\n'  # 记录发言
-                    if msg not in lines_seen:
-                        lines_seen.add(msg)
-                        with open(DanmuFileName,"a",encoding = 'utf-8') as logFile:
-                            logFile.writelines(msg)
-                if len(lines_seen)>1000:
-                    lines_seen.clear()
                 if self.live['status']:
+                    html = requests.post(url=DanmuURL,headers=DanmuHeaders,data=DanmuData).json()
+                    # 解析弹幕列表
+                    for content in html['data']['room']:
+                        msg = content['timeline'] +' '+ content['nickname'] + ': ' + content['text'] + '\n'  # 记录发言
+                        if msg not in lines_seen:
+                            lines_seen.add(msg)
+                            with open(DanmuFileName,"a",encoding = 'utf-8') as logFile:
+                                logFile.writelines(msg)
+                    if len(lines_seen)>1000:
+                        lines_seen.clear()
                     time.sleep(3)
-                else:
-                    time.sleep(logFrequTime)
+                time.sleep(logFrequTime)
         except Exception as ex:
             logWrite(ex)
             self.getDanmu()
@@ -169,7 +169,6 @@ class UPUP(object):
                 self.liveMessage = "\n\t未开播：{}\n\t刷新次数：{}\n\t下次刷新：{}\n\t{}".format(upName, self.refreshTimes, nextFreshTime, roomURl)
                 if self.getUserInfo():
                     streamUrl = self.getStreamUrl()
-                    threading.Thread(target=self.getDanmu, daemon=True).start()
                     liveTitle = re.sub('[\/:*?"<>|]','_',self.live['title'])
                     liveFileName = datetime.datetime.now().strftime("{}_%Y-%m-%d_%H-%M-%S_{}.flv".format(upName,liveTitle))
                     self.liveMessage = "\n\tUP主：{}\n\t刷新次数：{}\n\t直播标题：{}\n\t{}\n\t下载链接：{}".format(upName, self.refreshTimes, liveTitle, roomURl, streamUrl)
