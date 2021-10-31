@@ -11,6 +11,7 @@ import requests
 import platform
 import psutil
 import webbrowser
+import re
 def waitingSeconds(sleepNumber):
     print("请等待{}s".format(sleepNumber))
     time.sleep(sleepNumber)
