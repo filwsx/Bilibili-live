@@ -41,6 +41,7 @@ def logWrite(logMessage):
         logFile.writelines(content)
 #发出网络请求
 def downloadFile(url):
+    global requestErrorTimes
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36 QIHU 360SE'}
     requestsMinTime = 200  # 设置向B站请求时随机延时最小值，单位ms
     requestsMaxTime = 500  # 设置向B站请求时随机延时最大值，单位ms
@@ -59,10 +60,10 @@ class UPUP(object):
     def __init__(self,upMessage):
         self.upMessage = upMessage
         self.live = {'name': '【未初始化】', 'roomid': '【未初始化】', 'title': '【未初始化】', 'status': 0, 'streamUrl': '【未初始化】'}  # status为直播状态，1为正在直播；streamUrl为直播流直链
-        self.liveMessage = ""
         self.downloadDir = ""
         self.refreshTimes = 0
         self.tempNumber = 0
+        self.nextTime = datetime.datetime.now()
         self.mid = 398058064
         self.downTime = "18:30" #在每天downTime到upTime区间内高频率刷新直播状态
         self.upTime = "22:00"   #upTime小于downTime则默认为次日
@@ -91,7 +92,7 @@ class UPUP(object):
         threading.Thread(target=self.taskListening, daemon=True).start()
         threading.Thread(target=self.liveDownload, daemon=True).start()
         threading.Thread(target=self.getDanmu, daemon=True).start()
-        logMessage = '\n【{}初始化完成】'.format(mid)
+        logMessage = '【{}初始化完成】'.format(mid)
         logWrite(logMessage)
     # 根据ID获取up基本信息，也是刷新直播状态
     def getUserInfo(self):
@@ -138,8 +139,8 @@ class UPUP(object):
         DanmuHeaders = {'Host':'api.live.bilibili.com','User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0',}
         DanmuFileName = self.downloadDir + os.sep + datetime.datetime.now().strftime("{}_%Y-%m-%d.txt".format(self.live['name']))
         lines_seen = set()  #存储已写入弹幕信息用于去重
-        try :
-            while runFlag:
+        while runFlag:
+            try:
                 if self.live['status']:
                     html = requests.post(url=DanmuURL,headers=DanmuHeaders,data=DanmuData).json()
                     # 解析弹幕列表
@@ -153,25 +154,18 @@ class UPUP(object):
                         lines_seen.clear()
                     time.sleep(3)
                 time.sleep(logFrequTime)
-        except Exception as ex:
-            logWrite(ex)
-            self.getDanmu()
+            except Exception as ex:
+                logWrite(ex)
     #线程：监听当前对象直播
     def liveDownload(self):
-        upName = self.live['name']
-        roomId = self.live['roomid']
-        roomURl = '房间链接：https://live.bilibili.com/{}'.format(roomId)
-        try :
-            while runFlag:
+        while runFlag:
+            try:
                 DelayTime = random.randint(self.minTime+self.tempNumber, self.maxTime+self.tempNumber)
-                nextTime = datetime.datetime.now() + datetime.timedelta(seconds=DelayTime)
-                nextFreshTime = nextTime.strftime("%Y-%m-%d %H:%M:%S")
-                self.liveMessage = "\n\t未开播：{}\n\t刷新次数：{}\n\t下次刷新：{}\n\t{}".format(upName, self.refreshTimes, nextFreshTime, roomURl)
+                self.nextTime = datetime.datetime.now() + datetime.timedelta(seconds=DelayTime)
                 if self.getUserInfo():
                     streamUrl = self.getStreamUrl()
                     liveTitle = re.sub('[\/:*?"<>|]','_',self.live['title'])
-                    liveFileName = datetime.datetime.now().strftime("{}_%Y-%m-%d_%H-%M-%S_{}.flv".format(upName,liveTitle))
-                    self.liveMessage = "\n\tUP主：{}\n\t刷新次数：{}\n\t直播标题：{}\n\t{}\n\t下载链接：{}".format(upName, self.refreshTimes, liveTitle, roomURl, streamUrl)
+                    liveFileName = datetime.datetime.now().strftime("{}_%Y-%m-%d_%H-%M-%S_{}.flv".format(self.live['name'],liveTitle))
                     #下载线程会自己卡在这里，一直下载直到网络中断或者下播，这样不用记录是否下载，也不用对在直播up请求了
                     if isBrowser:
                         webbrowser.open(streamUrl)
@@ -179,16 +173,15 @@ class UPUP(object):
                         call([IDM, '/d', streamUrl, '/p', self.downloadDir, '/f', liveFileName, '/n'])
                     if isAria2:
                         call([aria2cDir, streamUrl, '-d', self.downloadDir, '-o', liveFileName])
-                        waitingSeconds(5)    #防止aria2下载出错导致频繁请求
+                        waitingSeconds(6)    #防止aria2下载出错导致频繁请求
                         continue
                     else:#没有开启aria2下载就手动造成一个堵塞
                         while self.getUserInfo():#只要在直播就一直调用call下载
                             time.sleep(600)
                 time.sleep(DelayTime)
-        except Exception as ex:
-            logWrite(ex)
-            waitingSeconds(5)
-            self.liveDownload()
+            except Exception as ex:
+                logWrite(ex)
+                waitingSeconds(5)
 #线程：定时写入日志信息（主要是直播信息）
 def LogListening(logTime):
     while runFlag:
@@ -196,34 +189,50 @@ def LogListening(logTime):
         time.sleep(logTime)
 #线程：为每个要监听的up创建一个对象，对象内有监听和下载线程
 def liveListening(upIDlist):
+    selectID = 0
     upObjectList = []
-    global allMessage
     #开启各个up线程
     for i in upIDlist:
         if i['isOpen']:
             liveVideo = UPUP(upMessage=i)
             upObjectList.append(liveVideo)
-            waitingSeconds(5)
+            waitingSeconds(4)
     #不断刷新屏幕信息
     while runFlag:
         liveOn = []  # 正在开播
         liveWaiting = []  # 等待开播
         liveMessage = "\n开播信息："
         for i in upObjectList:
-            liveMessage += "\n" + i.liveMessage
             upName = i.live['name']
+            upNameID = "{}-{}".format(upObjectList.index(i)+1,i.live['name'])
+            title = "\n\t直播标题：{}".format(i.live['title'])
+            refreshTimes = "\n\t刷新次数：{}".format(i.refreshTimes)
+            streamUrl = "\n\t下载链接：{}".format(i.live['streamUrl'])
+            nextFreshTime = i.nextTime.strftime("\n\t下次刷新：%Y-%m-%d %H:%M:%S")
+            roomURl = '\n\t房间链接：https://live.bilibili.com/{}'.format(i.live['roomid'])
             if i.live['status']:
-                liveOn.append(upName)
+                liveOn.append(upNameID)
+                tempMessage = "\n\n\tUP主：{}{}{}{}{}".format(upName, refreshTimes, title, roomURl, streamUrl)
             else:
-                liveWaiting.append(upName)
+                liveWaiting.append(upNameID)
+                tempMessage = "\n\n\t未开播：{}{}{}{}".format(upName, refreshTimes, nextFreshTime, roomURl)
+            if not selectID:
+                liveMessage += tempMessage
+            elif selectID == upObjectList.index(i)+1:
+                liveMessage += tempMessage
+        if selectID > len(upObjectList):
+            liveMessage += "\n\n\t用户编号不存在"
         liveStatusMessage = "\n开播状态：\n\t正在直播{}\n\t等待开播{}\n\t请求出错次数:{}".format(liveOn, liveWaiting, requestErrorTimes)
-        allMessage = liveStatusMessage + liveMessage
+        liveStatusMessage += liveMessage
         if isWindows:
             os.system('cls')
         else:
             os.system('clear')
-        print(allMessage)
-        time.sleep(10)
+        print(liveStatusMessage)
+        try:
+            selectID = int(input("0为全部，请输入要查看的用户信息："))
+        except:
+            selectID = 1
 if __name__ == '__main__':
     logFrequTime = 300   #日志写入频率，单位s
     isAria2 = 1 # 是否用aria2下载直播流
@@ -236,7 +245,7 @@ if __name__ == '__main__':
     requestErrorTimes = 0
     logUUID = uuid.uuid1()
     rootDir = os.getcwd() + os.sep
-    version = "BilibiliLiveBeta_V0.7.2"
+    version = "BilibiliLiveBeta_V0.7.3"
     allMessage = "程序初始化完成\n程序版本：{}".format(version)
     if platform.system() == "Windows":
         isWindows = 1
