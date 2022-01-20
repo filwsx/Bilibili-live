@@ -1,4 +1,11 @@
 {
+    "sysConfig":
+    [
+        {"logFrequTime":300,"globalDownloadDir":" "},
+        {"isAria2":1,"aria2cDir":"aria2c.exe"},
+        {"isIDM":0,"IDM":"IDMan.exe"},
+        {"isBrowser":0}
+    ],
     "user":
     [
         {"isOpen":1,"note":"罗翔说刑法","mid":517327498,"down2up":"18:30-22:00","addTime":120,"min2max":"20-30","qualityLive":10000},
