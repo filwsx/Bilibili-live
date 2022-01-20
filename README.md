@@ -63,6 +63,7 @@ python BilibiliLive.py .\user.json
 可使用：aria2/系统默认浏览器/idm  
 默认使用aria2下载  
 配置代码：  
+
 ```python
     isAria2 = 1 # 是否启用aria2下载直播流
     aria2cDir = r"aria2c" # 指定aria2路径
@@ -82,6 +83,12 @@ python BilibiliLive.py .\user.json
 在正式版本中删除了idm下载支持。如有需要参见 commit [0569a61](https://github.com/filwsx/Bilibili-live/commit/0569a611be024026839606a4015081e861c3b7e3) on 1 Nov 2021
 
 简化了信息显示，可在自动生成的liveStatus.txt查看直播状态
+
+[BilibiliLiveSimple.py](https://github.com/filwsx/Bilibili-live/blob/main/BilibiliLiveSimple.py)
+
+​		该本版仅支持windows平台下aria2下载，删去了日志输出和信息显示，要监听的主播保存在uplist列表内。
+
+​		直播流和弹幕下载功能与其他版本一致
 
 # 参考资料
 
