@@ -233,16 +233,22 @@ if __name__ == '__main__':
     requestErrorTimes = 0
     logUUID = uuid.uuid1()
     rootDir = os.getcwd() + os.sep
-    version = "BilibiliLive正式版V1.0"
+    version = "BilibiliLive_V1.1"
     allMessage = "程序初始化完成\n程序版本：{}".format(version)
     if platform.system() == "Windows":
         isWindows = 1
-        aria2cDir = r".\aria2c.exe"
     if len(sys.argv)>1:
         userFile = sys.argv[1]
         f = open(userFile,"r",encoding="utf-8") 
         data = json.load(f)
         uplist = data['user']
+        sysConfig = data['sysConfig'][0]
+        logFrequTime = sysConfig['logFrequTime']
+        rootDir = sysConfig['globalDownloadDir'] + os.sep
+        isAria2 = sysConfig['isAria2']
+        aria2cDir = sysConfig['aria2cDir']
+        isBrowser = sysConfig['isBrowser']
+        makeDir(rootDir)
     else:
         uplist = []
     threadLog = threading.Thread(target=LogListening, args=(logFrequTime,), daemon=True)
