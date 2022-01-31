@@ -1,10 +1,7 @@
 {
     "sysConfig":
     [
-        {"logFrequTime":300,"globalDownloadDir":" "},
-        {"isAria2":1,"aria2cDir":"aria2c.exe"},
-        {"isIDM":0,"IDM":"IDMan.exe"},
-        {"isBrowser":0}
+        {"logFrequTime":300,"globalDownloadDir":"./live","isAria2":1,"aria2cDir":"./aria2c.exe","isBrowser":0}
     ],
     "user":
     [
