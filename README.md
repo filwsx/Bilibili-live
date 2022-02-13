@@ -34,6 +34,10 @@ min2max为快速刷新时的随机时间取值范围，addTime+min到addTime+max
 qualityLive为直播画质:20000为4K,10000为原画,401为杜比蓝光,400为蓝光,250为超清,150为高清,80为流畅   
 ```json
 {
+    "sysConfig":
+    [
+     {"logFrequTime":300,"globalDownloadDir":"./live","isAria2":1,"aria2cDir":"./aria2c.exe","isBrowser":0}
+    ],
     "user":
     [
         {"isOpen":1,"note":"罗翔说刑法","mid":517327498,"down2up":"18:30-22:00","addTime":120,"min2max":"20-30","qualityLive":10000},
@@ -43,39 +47,25 @@ qualityLive为直播画质:20000为4K,10000为原画,401为杜比蓝光,400为�
 ```
 4. 运行
 
-   方式一：打开cmd、powershell或终端执行  
+   windows平台可直接运行BilibiliStart.cmd 
 
 ```shell
 cd [脚本所在目录]
 python BilibiliLive.py .\user.json
 ```
 
-​	  方式二：windows平台，可直接运行BilibiliStart.cmd
-
 5. 关于稳定性
 
-   因为代码存在未知的原因，会结束，为了规避这种情况，windows平台下可将bilili.xml配置导入计划任务，修改BilibiliLiveListen.py位置即可。
+   因为未知原因，程序会异常终止。为避免监听中断，windows平台下可将BilibiliStart.cmd 设为开机和间隔1分钟运行
    
-   脚本需要psutil库支持。
 
-# 下载配置  
-
-可使用：aria2/系统默认浏览器/idm  
-默认使用aria2下载  
-配置代码：  
-
-```python
-    isAria2 = 1 # 是否启用aria2下载直播流
-    aria2cDir = r"aria2c" # 指定aria2路径
-    isBrowser = 0  # 是否启用系统默认浏览器打开直播流链接
-```
 # 计划任务
 - [ ] 存在未知原因的程序退出
-- [ ] 支持json配置程序其他参数
+- [x] 支持json配置程序其他参数
 - [x] 增加浏览器与IDM下载支持
-- [ ] 增加开播时间信息
+- [ ] ~~增加开播时间信息~~
 - [x] 获得的直播标题可能存在非法字符
-- [ ] 直播状态刷新调度器
+- [ ] ~~直播状态刷新调度器~~
 - [ ] ~~直播对象监听与信息显示分开为两个线程~~
 
 # 版本说明
@@ -86,9 +76,8 @@ python BilibiliLive.py .\user.json
 
 [BilibiliLiveSimple.py](https://github.com/filwsx/Bilibili-live/blob/main/BilibiliLiveSimple.py)
 
-​		该本版仅支持windows平台下aria2下载，删去了日志输出和信息显示，要监听的主播保存在uplist列表内。
-
-​		直播流和弹幕下载功能与其他版本一致
+	该本版仅支持windows平台下aria2下载，删去了日志输出和信息显示，要监听的主播保存在uplist列表内。
+	直播流和弹幕下载功能与其他版本一致
 
 # 参考资料
 
