@@ -253,7 +253,9 @@ if __name__ == '__main__':
         uplist = []
     threadLog = threading.Thread(target=LogListening, args=(logFrequTime,), daemon=True)
     threadLive = threading.Thread(target=liveListening, args=(uplist,), daemon=True)
-    threadList = [threadLog,threadLive]
+    threadList = [threadLive]
+    if logFrequTime:
+        threadList.append(threadLog)
     for i in threadList:
         i.start()
     while runFlag:
