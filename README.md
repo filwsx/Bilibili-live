@@ -22,16 +22,21 @@
 3. 下载工具配置  
     **windows平台**  
     下载[aria2c.exe](https://github.com/aria2/aria2/releases)，与py脚本放在同一目录下  
-    或在代码中手动设置aria2c.exe绝对路径
+    或在配置文件中手动设置aria2c.exe绝对路径
     
     **ubuntu平台**  
     安装aria2   
     ```sudo snap install aria2c```  
     
-4. json文件说明与配置
-isopen用于控制是否爬取该用户，note为注释，down2up为快速刷新直播状态的时段，  
-min2max为快速刷新时的随机时间取值范围，addTime+min到addTime+max为低频刷新时的取值范围  
-qualityLive为直播画质:20000为4K,10000为原画,401为杜比蓝光,400为蓝光,250为超清,150为高清,80为流畅   
+    配置文件中设置为 aria2c 即可
+    
+3. json文件说明与配置
+      isopen用于控制是否爬取该用户
+    note为注释
+    down2up为快速刷新直播状态的时段，  
+    min2max为快速刷新时的随机时间取值范围
+    addTime+min到addTime+max为低频刷新时的取值范围  
+    qualityLive为直播画质：20000为4K,10000为原画,401为杜比蓝光,400为蓝光,250为超清,150为高清,80为流畅   
 ```json
 {
     "sysConfig":
@@ -78,11 +83,6 @@ python BilibiliLive.py .\user.json
 
 	该本版仅支持windows平台下aria2下载，删去了日志输出和信息显示，要监听的主播保存在uplist列表内。
 	直播流和弹幕下载功能与其他版本一致
-
-# 参考资料
-
-  https://blog.csdn.net/Enderman_xiaohei/article/details/102626855  
-  https://blog.csdn.net/qq_43017750/article/details/107771744  
 
 # 后记
 
