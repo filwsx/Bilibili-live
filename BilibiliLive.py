@@ -93,13 +93,14 @@ class UPUP(object):
     def getUserInfo(self):
         self.refreshTimes = self.refreshTimes + 1
         url = 'https://api.bilibili.com/x/space/acc/info?mid={}&jsonp=jsonp'.format(self.mid)
+        #https://api.bilibili.com/x/space/acc/info?mid=23191782&jsonp=jsonp
         r = downloadFile(url)
         if r[1]:
             response = json.loads(r[0])
             self.live['name'] = response['data']['name']
             self.live['roomid'] = response['data']['live_room']['roomid']
             self.live['title'] = response['data']['live_room']['title']
-            self.live['status'] = response['data']['live_room']['liveStatus']
+            self.live['status'] = response['data']['live_room']['roomStatus']
         return self.live['status']
     # 获取直播流url
     def getStreamUrl(self):
@@ -184,7 +185,7 @@ def LogListening(logTime):
 def liveListening(upIDlist):
     upObjectList = []
     global allMessage
-    liveStatusFileName = rootDir + "liveStatus.txt"
+    roomStatusFileName = rootDir + "roomStatus.txt"
     #开启各个up线程
     for i in upIDlist:
         if i['isOpen']:
@@ -212,16 +213,16 @@ def liveListening(upIDlist):
                 liveWaiting.append(upNameID)
                 tempMessage = "\n\n\t未开播：{}{}{}{}".format(upName, refreshTimes, nextFreshTime, roomURl)
             allMessage += tempMessage
-        liveStatusMessage = "\n开播状态：\n\t正在直播{}\n\t等待开播{}\n\t请求出错次数:{}".format(liveOn, liveWaiting, requestErrorTimes)
-        allMessage = liveStatusMessage + allMessage
+        roomStatusMessage = "\n开播状态：\n\t正在直播{}\n\t等待开播{}\n\t请求出错次数:{}".format(liveOn, liveWaiting, requestErrorTimes)
+        allMessage = roomStatusMessage + allMessage
         if isWindows:
             os.system('cls')
         else:
             os.system('clear')
         print(allMessage)
-        liveStatusFile = open(liveStatusFileName,"w",encoding = 'utf-8') 
-        liveStatusFile.write(allMessage)
-        liveStatusFile.close()
+        roomStatusFile = open(roomStatusFileName,"w",encoding = 'utf-8') 
+        roomStatusFile.write(allMessage)
+        roomStatusFile.close()
         time.sleep(2)
 if __name__ == '__main__':
     logFrequTime = 300   #日志写入频率，单位s
