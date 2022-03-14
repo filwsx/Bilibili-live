@@ -100,7 +100,7 @@ class UPUP(object):
             self.live['name'] = response['data']['name']
             self.live['roomid'] = response['data']['live_room']['roomid']
             self.live['title'] = response['data']['live_room']['title']
-            self.live['status'] = response['data']['live_room']['roomStatus']
+            self.live['status'] = response['data']['live_room']['liveStatus']
         return self.live['status']
     # 获取直播流url
     def getStreamUrl(self):
@@ -158,7 +158,7 @@ class UPUP(object):
             try:
                 DelayTime = random.randint(self.minTime+self.tempNumber, self.maxTime+self.tempNumber)
                 self.nextTime = datetime.datetime.now() + datetime.timedelta(seconds=DelayTime)
-                if self.getUserInfo():
+                if self.getUserInfo() == 1:
                     streamUrl = self.getStreamUrl()
                     liveTitle = re.sub('[\/:*?"<>|]','_',self.live['title'])
                     liveFileName = datetime.datetime.now().strftime("{}_%Y-%m-%d_%H-%M-%S_{}.flv".format(self.live['name'],liveTitle))
@@ -185,7 +185,7 @@ def LogListening(logTime):
 def liveListening(upIDlist):
     upObjectList = []
     global allMessage
-    roomStatusFileName = rootDir + "roomStatus.txt"
+    liveStatusFileName = rootDir + "liveStatus.txt"
     #开启各个up线程
     for i in upIDlist:
         if i['isOpen']:
@@ -213,16 +213,16 @@ def liveListening(upIDlist):
                 liveWaiting.append(upNameID)
                 tempMessage = "\n\n\t未开播：{}{}{}{}".format(upName, refreshTimes, nextFreshTime, roomURl)
             allMessage += tempMessage
-        roomStatusMessage = "\n开播状态：\n\t正在直播{}\n\t等待开播{}\n\t请求出错次数:{}".format(liveOn, liveWaiting, requestErrorTimes)
-        allMessage = roomStatusMessage + allMessage
+        liveStatusMessage = "\n开播状态：\n\t正在直播{}\n\t等待开播{}\n\t请求出错次数:{}".format(liveOn, liveWaiting, requestErrorTimes)
+        allMessage = liveStatusMessage + allMessage
         if isWindows:
             os.system('cls')
         else:
             os.system('clear')
         print(allMessage)
-        roomStatusFile = open(roomStatusFileName,"w",encoding = 'utf-8') 
-        roomStatusFile.write(allMessage)
-        roomStatusFile.close()
+        liveStatusFile = open(liveStatusFileName,"w",encoding = 'utf-8') 
+        liveStatusFile.write(allMessage)
+        liveStatusFile.close()
         time.sleep(2)
 if __name__ == '__main__':
     logFrequTime = 300   #日志写入频率，单位s
