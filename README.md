@@ -1,4 +1,17 @@
+# 使用注意
+
+请适度使用！
+
+爬取的内容版权归属up主/平台！
+
+若对直播内容在公开场合发布，请先经过版权方同意！！！！！
+
+部分up直播内容并不希望录屏、传播，请尊重！！！！！！！！
+
+本项目仅用于技术探讨。
+
 # Bilibili-live
+
 功能描述：用于挂机监听B站用户直播是否开播，开播则自动下载直播流(flv格式)和实时弹幕    
 
 开发平台：windows10 + python3.9   
@@ -8,35 +21,43 @@
 是否需要登录：不需要登陆  
 
 # 基本知识  
+
 ## mid：  
+
 	即用户ID，纯数字。  
 	以https://space.bilibili.com/163637592为例，网址最后一串数字163637592为用户ID。
+
 ## room_id：  
+
 	即直播房间ID，纯数字。  
 	以https://live.bilibili.com/5867219为例，网址最后一串数字5867219为直播房间ID。  
+
 请求数据格式均为json。
+
 # 使用方法
+
 1. 安装python并配置环境变量  
-	python推荐版本3.9（因为开发用的这个版本，其他版本未经测试）
-	
-3. 下载工具配置  
-    **windows平台**  
-    下载[aria2c.exe](https://github.com/aria2/aria2/releases)，与py脚本放在同一目录下  
-    或在配置文件中手动设置aria2c.exe绝对路径
-    
-    **ubuntu平台**  
-    安装aria2   
-    ```sudo snap install aria2c```  
-    
-    配置文件中设置为 aria2c 即可
-    
+   python推荐版本3.9（因为开发用的这个版本，其他版本未经测试）
+
+2. 下载工具配置  
+   **windows平台**  
+   下载[aria2c.exe](https://github.com/aria2/aria2/releases)，与py脚本放在同一目录下  
+   或在配置文件中手动设置aria2c.exe绝对路径
+
+   **ubuntu平台**  
+   安装aria2   
+   ```sudo snap install aria2c```  
+
+   配置文件中设置为 aria2c 即可
+
 3. json文件说明与配置
-      isopen用于控制是否爬取该用户
-    note为注释
-    down2up为快速刷新直播状态的时段，  
-    min2max为快速刷新时的随机时间取值范围
-    addTime+min到addTime+max为低频刷新时的取值范围  
-    qualityLive为直播画质：20000为4K,10000为原画,401为杜比蓝光,400为蓝光,250为超清,150为高清,80为流畅   
+   isopen用于控制是否爬取该用户
+   note为注释
+   down2up为快速刷新直播状态的时段，  
+   min2max为快速刷新时的随机时间取值范围
+   addTime+min到addTime+max为低频刷新时的取值范围  
+   qualityLive为直播画质：20000为4K,10000为原画,401为杜比蓝光,400为蓝光,250为超清,150为高清,80为流畅   
+
 ```json
 {
     "sysConfig":
@@ -50,6 +71,7 @@
     ]
 }
 ```
+
 4. 运行
 
    windows平台可直接运行BilibiliStart.cmd 
@@ -62,9 +84,9 @@ python BilibiliLive.py .\user.json
 5. 关于稳定性
 
    因为未知原因，程序会异常终止。为避免监听中断，windows平台下可将BilibiliStart.cmd 设为开机和间隔1分钟运行
-   
 
 # 计划任务
+
 - [ ] 存在未知原因的程序退出
 - [x] 支持json配置程序其他参数
 - [x] 增加浏览器与IDM下载支持
