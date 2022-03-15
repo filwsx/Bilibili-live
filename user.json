@@ -1,7 +1,7 @@
 {
     "sysConfig":
     [
-        {"logFrequTime":0,"globalDownloadDir":"./live","isAria2":1,"aria2cDir":"./aria2c.exe","isBrowser":0}
+        {"globalDownloadDir":"./live","aria2cDir":"./aria2c.exe"}
     ],
     "user":
     [
