@@ -232,7 +232,6 @@ if __name__ == '__main__':
         sysConfig = data['sysConfig'][0]
         rootDir = sysConfig['globalDownloadDir'] + os.sep
         aria2cDir = sysConfig['aria2cDir']
-        isBrowser = sysConfig['isBrowser']
         makeDir(rootDir)
     else:
         uplist = []
