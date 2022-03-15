@@ -164,7 +164,7 @@ class UPUP(object):
                     #下载线程会自己卡在这里
                     call([aria2cDir, streamUrl, '-d', self.downloadDir, '-o', liveFileName])
                 else:
-                    time.sleep(DelayTime)
+                    time.sleep(DelayTime-4)
             except Exception as ex:
                 logWrite(ex)
             waitingSeconds(4)
