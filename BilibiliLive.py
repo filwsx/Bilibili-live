@@ -9,7 +9,6 @@ import uuid
 import threading
 import requests
 import platform
-import webbrowser
 import re
 #含有信息打印的延迟
 def waitingSeconds(sleepNumber):
@@ -59,7 +58,7 @@ class UPUP(object):
         self.refreshTimes = 0
         self.tempNumber = 0
         self.nextTime = datetime.datetime.now()
-        self.mid = 398058064
+        self.mid = 0
         self.downTime = "18:30" #在每天downTime到upTime区间内高频率刷新直播状态
         self.upTime = "22:00"   #upTime小于downTime则默认为次日
         self.minTime = 20  # 设置直播状态刷新随机间隔最小值，单位s
@@ -147,11 +146,11 @@ class UPUP(object):
                             lines_seen.add(msg)
                             with open(DanmuFileName,"a",encoding = 'utf-8') as logFile:
                                 logFile.writelines(msg)
-                    if len(lines_seen)>1000:
+                    if len(lines_seen)>10000:
                         lines_seen.clear()
             except Exception as ex:
                 logWrite(ex)
-            time.sleep(2)
+            time.sleep(1)
     # 线程：监听当前对象直播与下载
     def liveDownload(self):
         while runFlag:
@@ -162,25 +161,13 @@ class UPUP(object):
                     streamUrl = self.getStreamUrl()
                     liveTitle = re.sub('[\/:*?"<>|]','_',self.live['title'])
                     liveFileName = datetime.datetime.now().strftime("{}_%Y-%m-%d_%H-%M-%S_{}.flv".format(self.live['name'],liveTitle))
-                    #下载线程会自己卡在这里，一直下载直到网络中断或者下播，这样不用记录是否下载，也不用对在直播up请求了
-                    if isBrowser:
-                        webbrowser.open(streamUrl)
-                    if isAria2:
-                        call([aria2cDir, streamUrl, '-d', self.downloadDir, '-o', liveFileName])
-                        waitingSeconds(6)    #防止aria2下载出错导致频繁请求
-                        continue
-                    else:#没有开启aria2下载就手动造成一个堵塞
-                        while self.getUserInfo():#只要在直播就一直调用call下载
-                            time.sleep(600)
-                time.sleep(DelayTime)
+                    #下载线程会自己卡在这里
+                    call([aria2cDir, streamUrl, '-d', self.downloadDir, '-o', liveFileName])
+                else:
+                    time.sleep(DelayTime)
             except Exception as ex:
                 logWrite(ex)
-                waitingSeconds(5)
-#线程：定时写入日志信息（主要是直播信息）
-def LogListening(logTime):
-    while runFlag:
-        logWrite(allMessage)
-        time.sleep(logTime)
+            waitingSeconds(4)
 #线程：创建up对象，显示监听信息
 def liveListening(upIDlist):
     upObjectList = []
@@ -225,8 +212,6 @@ def liveListening(upIDlist):
         liveStatusFile.close()
         time.sleep(2)
 if __name__ == '__main__':
-    logFrequTime = 300   #日志写入频率，单位s
-    isAria2 = 1 # 是否用aria2下载直播流
     aria2cDir = r"aria2c"
     isBrowser = 0  # 是否用浏览器下载直播流
     runFlag = 1
@@ -242,24 +227,16 @@ if __name__ == '__main__':
         userFile = sys.argv[1]
         f = open(userFile,"r",encoding="utf-8") 
         data = json.load(f)
+        f.close()
         uplist = data['user']
         sysConfig = data['sysConfig'][0]
-        logFrequTime = sysConfig['logFrequTime']
         rootDir = sysConfig['globalDownloadDir'] + os.sep
-        isAria2 = sysConfig['isAria2']
         aria2cDir = sysConfig['aria2cDir']
         isBrowser = sysConfig['isBrowser']
         makeDir(rootDir)
     else:
         uplist = []
-    threadLog = threading.Thread(target=LogListening, args=(logFrequTime,), daemon=True)
     threadLive = threading.Thread(target=liveListening, args=(uplist,), daemon=True)
-    threadList = [threadLive]
-    if logFrequTime:
-        threadList.append(threadLog)
-    for i in threadList:
-        i.start()
+    threadLive.start()
     while runFlag:
         time.sleep(100)
-    allMessage = "程序即将结束\n程序版本：{}".format(version)
-    logWrite(allMessage)
